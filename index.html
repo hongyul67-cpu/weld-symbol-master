@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>용접기호 마스터 — 화살표 쪽인가, 반대쪽인가</title>
+<style>
+  :root{
+    --bg:#0b2540; --panel:#123459; --panel-light:#1c4474;
+    --text:#eaf4ff; --text-dim:#9fc1e0; --accent:#ffb454;
+    --correct:#5fd86f; --wrong:#ff6b6b; --grid:rgba(234,244,255,0.06);
+    --paper:#f4efe0; --ink:#1c3247; --link:#5bc8de;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);min-height:100vh;padding:18px 14px 70px;
+    font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',-apple-system,sans-serif;
+    background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/40px 40px,
+               linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/40px 40px,var(--bg);}
+  .wrap{max-width:860px;margin:0 auto}
+  .eyebrow{font-size:.74rem;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;font-weight:700;margin-bottom:6px}
+  h1{font-size:1.5rem;margin:0 0 4px}
+  .subtitle{color:var(--text-dim);font-size:.94rem;margin-bottom:16px;line-height:1.55}
+  .panel{background:var(--panel);border:1px solid rgba(234,244,255,.12);border-radius:14px;padding:20px;margin-bottom:16px}
+  .tabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+  .tab{flex:1 1 128px;background:transparent;border:1px solid rgba(234,244,255,.22);color:var(--text-dim);
+       padding:11px 8px;border-radius:9px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:inherit}
+  .tab:hover{border-color:var(--accent);color:var(--text)}
+  .tab[aria-pressed="true"]{background:var(--accent);color:#1a1306;border-color:var(--accent)}
+  .tab .done{color:var(--correct);font-size:.8rem}
+  .tab[aria-pressed="true"] .done{color:#1a6b28}
+
+  .guide{background:rgba(255,180,84,.1);border:1px solid rgba(255,180,84,.35);border-radius:10px;
+         padding:11px 14px;font-size:.87rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px}
+  .guide b{color:var(--accent)}
+
+  .paperwrap{background:var(--paper);border-radius:12px;padding:10px;position:relative}
+  canvas{display:block;width:100%}
+  #calloutCv{height:250px} #symCv{height:210px} #dimCv{height:210px} #qCv{height:240px}
+  @media(max-width:560px){#calloutCv{height:225px} #symCv{height:190px} #dimCv{height:195px} #qCv{height:215px}}
+
+  .row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#0f2032;
+       border:1px solid rgba(234,244,255,.14);border-radius:10px;padding:9px 11px;margin-bottom:12px}
+  .row .lab{font-size:.72rem;color:var(--text-dim);letter-spacing:.08em;flex:none}
+  .seg{display:flex;gap:5px;flex-wrap:wrap}
+  .segBtn{background:transparent;border:1px solid rgba(234,244,255,.24);color:var(--text);padding:9px 12px;
+          border-radius:7px;cursor:pointer;font-weight:700;font-size:.81rem;font-family:inherit}
+  .segBtn:hover{border-color:var(--link)}
+  .segBtn[aria-pressed="true"]{background:var(--link);color:#04121c;border-color:var(--link)}
+  .segBtn .ok{color:var(--correct)}
+
+  .btn{border:none;border-radius:10px;background:var(--accent);color:#1a1306;font-weight:800;
+       font-size:.95rem;padding:13px 20px;cursor:pointer;min-height:50px;font-family:inherit}
+  .btn.ghost{background:transparent;border:1px solid rgba(234,244,255,.3);color:var(--text)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btnrow{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+
+  .learnnav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+  .dots{display:flex;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%;background:rgba(234,244,255,.22)}
+  .dot.on{background:var(--accent)} .dot.seen{background:var(--link)}
+  h2.step{font-size:1.12rem;margin:0 0 8px;color:var(--accent)}
+  .body{font-size:.93rem;line-height:1.7;color:var(--text-dim)}
+  .body b{color:var(--text)} .body .hl{color:var(--accent);font-weight:800}
+
+  .partbtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .partbtn{background:#0f2032;border:1px solid rgba(234,244,255,.2);color:var(--text-dim);
+           border-radius:20px;padding:8px 14px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit}
+  .partbtn[aria-pressed="true"]{background:var(--accent);color:#1a1306;border-color:var(--accent)}
+
+  .symgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin-top:10px}
+  .symcard{background:var(--paper);border:3px solid transparent;border-radius:11px;padding:8px 6px 7px;
+           cursor:pointer;font-family:inherit;text-align:center}
+  .symcard canvas{width:100%;height:52px}
+  .symcard .nm{font-size:.76rem;font-weight:800;color:#1c3247;margin-top:4px;line-height:1.3}
+  .symcard[aria-pressed="true"]{border-color:var(--accent)}
+
+  .explain{background:rgba(91,200,222,.09);border-left:3px solid var(--link);border-radius:0 8px 8px 0;
+           padding:11px 13px;margin-top:11px;font-size:.87rem;color:var(--text-dim);line-height:1.65}
+  .explain b{color:var(--link)}
+  .explain code,code.m{font-family:ui-monospace,monospace;color:var(--accent);background:rgba(255,180,84,.12);
+        padding:1px 6px;border-radius:4px}
+  .keybox{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.4);border-radius:10px;
+          padding:12px 14px;font-size:.9rem;line-height:1.7;margin-top:12px;color:var(--text)}
+  .keybox b{color:var(--accent)}
+
+  table.t{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:10px}
+  table.t th,table.t td{border:1px solid rgba(234,244,255,.16);padding:7px 8px;text-align:center}
+  table.t th{background:var(--panel-light);color:var(--text);font-weight:700}
+  table.t td{color:var(--text-dim)} table.t td.k{color:var(--accent);font-weight:800;font-family:ui-monospace,monospace}
+  table.t td.l{text-align:left}
+
+  .prompt{font-size:1.02rem;margin:14px 0 11px;line-height:1.55}
+  .prompt b{color:var(--accent)}
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .choices.one{grid-template-columns:1fr}
+  .choice{background:var(--paper);border:3px solid transparent;border-radius:11px;padding:12px 10px;
+          cursor:pointer;display:flex;align-items:flex-start;gap:8px;font-family:inherit;text-align:left;min-height:56px}
+  .choice .num{font-size:.8rem;font-weight:800;color:#5b7286;flex:none;line-height:1.4}
+  .choice .tx{font-weight:800;color:#1c3247;font-size:.93rem;line-height:1.45}
+  .choice:hover:not(:disabled){border-color:var(--link)}
+  .choice.sel{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,180,84,.3)}
+  .choice.correct{border-color:var(--correct);background:#e3f5ec}
+  .choice.wrong{border-color:var(--wrong);background:#fbecea}
+  .choice:disabled{cursor:default}
+
+  .scorebar{display:flex;gap:16px;flex-wrap:wrap;font-size:.88rem;color:var(--text-dim);margin-top:13px}
+  .scorebar b{color:var(--text)}
+  .pill{background:var(--panel-light);border-radius:20px;padding:4px 13px;font-size:.82rem;color:var(--accent);font-weight:800}
+  .toast{font-size:.93rem;font-weight:700;min-height:22px;margin-top:10px;line-height:1.5}
+  .toast.ok{color:var(--correct)} .toast.no{color:var(--wrong)} .toast.go{color:var(--accent)}
+  .hidden{display:none !important}
+  .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .links a{color:var(--link);text-decoration:none;font-size:.83rem;border:1px solid rgba(91,200,222,.4);padding:7px 12px;border-radius:8px}
+  .links a:hover{background:rgba(91,200,222,.12)}
+  footer{max-width:860px;margin:14px auto 0;color:var(--text-dim);font-size:.8rem;line-height:1.6;text-align:center}
+  @media(max-width:560px){
+    body{padding:14px 10px 60px} .panel{padding:15px}
+    .choices{grid-template-columns:1fr} .prompt{font-size:.97rem}
+    .tab{padding:12px 8px} table.t{font-size:.78rem} table.t th,table.t td{padding:6px 4px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Welding Symbols · 용접기호</div>
+  <h1>용접기호 마스터</h1>
+  <p class="subtitle">용접기호는 <b>"어디를, 어떤 모양으로, 얼마나"</b>를 한 줄로 적은 것입니다. 가장 중요한 건 딱 하나 — <b>실선에 붙으면 화살표 쪽, 파선에 붙으면 반대쪽.</b></p>
+
+  <div class="tabs" role="group" aria-label="모드 선택">
+    <button class="tab" id="tabLearn" aria-pressed="true">📖 배우기 <span class="done hidden" id="dLearn">✓</span></button>
+    <button class="tab" id="tabSide" aria-pressed="false">도전 ① 어느 쪽?</button>
+    <button class="tab" id="tabName" aria-pressed="false">도전 ② 기호 이름</button>
+    <button class="tab" id="tabDim" aria-pressed="false">도전 ③ 치수 읽기</button>
+    <button class="tab" id="tabExam" aria-pressed="false">🎯 종합시험</button>
+  </div>
+
+  <section id="secLearn">
+    <div class="guide">처음이라면 <b>📖 배우기</b>부터. <b>맞힐 필요가 없습니다</b> — 버튼을 눌러 그림이 어떻게 바뀌는지만 보면 됩니다.</div>
+    <div class="panel">
+      <div class="learnnav">
+        <div class="dots" id="learnDots"></div>
+        <span class="pill" id="learnPos">1 / 4</span>
+      </div>
+      <h2 class="step" id="learnTitle"></h2>
+      <div class="body" id="learnBody"></div>
+
+      <!-- ① 설명선 구조 -->
+      <div id="wCallout" class="hidden">
+        <div class="paperwrap"><canvas id="calloutCv"></canvas></div>
+        <div class="partbtns" id="partBtns"></div>
+        <div class="explain" id="partExplain"></div>
+      </div>
+
+      <!-- ② 화살표 쪽 / 반대쪽 -->
+      <div id="wSide" class="hidden">
+        <div class="row">
+          <span class="lab">용접 위치</span>
+          <div class="seg" id="sideSeg">
+            <button class="segBtn" type="button" data-s="arrow" aria-pressed="true">화살표 쪽 (실선)</button>
+            <button class="segBtn" type="button" data-s="other" aria-pressed="false">반대쪽 (파선)</button>
+            <button class="segBtn" type="button" data-s="both" aria-pressed="false">양쪽 모두</button>
+          </div>
+        </div>
+        <div class="paperwrap"><canvas id="sideCv" style="height:260px"></canvas></div>
+        <div class="keybox" id="sideKey"></div>
+      </div>
+
+      <!-- ③ 기본기호 -->
+      <div id="wSym" class="hidden">
+        <div class="symgrid" id="symGrid"></div>
+        <div class="paperwrap" style="margin-top:10px"><canvas id="symCv"></canvas></div>
+        <div class="explain" id="symExplain"></div>
+      </div>
+
+      <!-- ④ 보조기호·치수 -->
+      <div id="wDim" class="hidden">
+        <div class="row">
+          <span class="lab">보기</span>
+          <div class="seg" id="dimSeg"></div>
+        </div>
+        <div class="paperwrap"><canvas id="dimCv"></canvas></div>
+        <div class="explain" id="dimExplain"></div>
+        <table class="t" id="dimTable"></table>
+      </div>
+
+      <div class="btnrow">
+        <button class="btn ghost" id="btnPrev">← 이전</button>
+        <button class="btn" id="btnNextPage">다음 →</button>
+        <button class="btn hidden" id="btnGoTest">🎯 이제 테스트 하러 가기</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="secQuiz" class="hidden">
+    <div class="panel">
+      <div class="prompt" id="qPrompt"></div>
+      <div class="paperwrap" id="qCvBox"><canvas id="qCv"></canvas></div>
+      <div class="choices" id="qChoices" style="margin-top:14px"></div>
+      <div class="btnrow">
+        <button class="btn" id="btnSubmit" disabled>제출</button>
+        <button class="btn ghost hidden" id="btnNext">다음 문제 →</button>
+        <button class="btn ghost" id="btnRestart">처음부터</button>
+      </div>
+      <div class="scorebar">
+        <span>문제 <b id="qRound">1</b> / <b id="qTotal">8</b></span>
+        <span>맞은 개수 <b id="qScore">0</b></span>
+        <span class="pill" id="qCombo">연속 0</span>
+      </div>
+      <div class="toast go" id="qToast">보기를 고른 뒤 <b>제출</b>을 누르세요.</div>
+      <div class="explain hidden" id="qExplain"></div>
+    </div>
+  </section>
+
+  <div class="panel" style="padding:16px 20px">
+    <div style="font-size:.84rem;color:var(--text-dim);margin-bottom:8px">🔗 같은 단원의 다른 도구</div>
+    <div class="links">
+      <a href="https://hongyul67-cpu.github.io/drawing-master-hub/" target="_blank" rel="noopener">🗂️ 제도 마스터 (전체 모음)</a>
+      <a href="https://hongyul67-cpu.github.io/mechanical-drawing-symbols/" target="_blank" rel="noopener">기계제도 기호 마스터</a>
+      <a href="https://hongyul67-cpu.github.io/material-symbol-master/" target="_blank" rel="noopener">재료기호 마스터</a>
+      <a href="https://hongyul67-cpu.github.io/domyeon-master/" target="_blank" rel="noopener">도면읽기 마스터</a>
+    </div>
+  </div>
+</div>
+<footer>기계제도 Ⅴ. 산업 설비 제도하기 — 1. 용접 이음 제도하기 (KS B 0052)<br>제작: hong · 기계 계열 특성화고 수업 보조 도구</footer>
+
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="용접기호 마스터"></script>
+<script src="https://hongyul67-cpu.github.io/links/fx.js"></script>
+<script>
+(function(){
+"use strict";
+const el=id=>document.getElementById(id);
+const rnd=n=>Math.floor(Math.random()*n), pick=a=>a[rnd(a.length)];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+const has=n=>typeof FX!=="undefined" && typeof FX[n]==="function";
+const fxRight=e=>{ if(has("burst")) FX.burst(e); if(has("punch")) FX.punch(e); };
+const fxWrong =e=>{ if(has("shake")) FX.shake(e); if(has("flash")) FX.flash(); };
+const fxBanner=o=>{ if(has("banner")) FX.banner(o); };
+const fxStars =m=>has("starsFor")?FX.starsFor(m):3;
+
+/* ================= 캔버스 기초 ================= */
+const INK="#1c3247", DIM="#8fb3cf", HOT="#c1622a", GRN="#1a7f3c", RED="#d0342c";
+function ctxOf(cv){
+  const dpr=window.devicePixelRatio||1;
+  const w=cv.clientWidth||600, h=parseFloat(getComputedStyle(cv).height)||240;
+  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+  const g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+  return {g,w,h};
+}
+function txt(g,s,x,y,o){ o=o||{}; g.save();
+  g.fillStyle=o.c||INK; g.font=(o.b?"700 ":"")+(o.s||12)+"px 'Malgun Gothic',sans-serif";
+  g.textAlign=o.a||"center"; g.textBaseline=o.v||"middle"; g.fillText(s,x,y); g.restore(); }
+function line(g,x1,y1,x2,y2,c,w,d){ g.save(); g.strokeStyle=c||INK; g.lineWidth=w||1.4;
+  if(d) g.setLineDash(d); g.beginPath(); g.moveTo(x1,y1); g.lineTo(x2,y2); g.stroke(); g.restore(); }
+function arrowHead(g,x,y,ang,c){ g.save(); g.fillStyle=c||INK; g.translate(x,y); g.rotate(ang);
+  g.beginPath(); g.moveTo(0,0); g.lineTo(-11,-4); g.lineTo(-11,4); g.closePath(); g.fill(); g.restore(); }
+
+/* ================= 기본 기호 (KS B 0052) =================
+   각 기호는 (cx, baseY) 를 기준선 위 위치로 받아 크기 s 로 그린다.
+   up=true 면 기준선 위쪽(화살표 쪽), false 면 아래쪽(반대쪽)에 그린다. */
+const SYMS={
+  square:{n:"I형(평행) 맞대기 용접", d:"두 판을 개선(홈) 없이 맞대고 그대로 용접. 얇은 판에 씁니다.",
+    j:"butt", draw(g,cx,by,s,u){ const h=s, k=u?-1:1;
+      line(g,cx-s*0.22,by,cx-s*0.22,by+k*h,INK,1.6);
+      line(g,cx+s*0.22,by,cx+s*0.22,by+k*h,INK,1.6); }},
+  vgroove:{n:"V형 맞대기 용접", d:"양쪽 판을 비스듬히 깎아 V 모양 홈을 만들고 용접. 가장 흔한 맞대기.",
+    j:"butt", draw(g,cx,by,s,u){ const k=u?-1:1;
+      line(g,cx,by,cx-s*0.4,by+k*s,INK,1.6); line(g,cx,by,cx+s*0.4,by+k*s,INK,1.6); }},
+  bevel:{n:"일면 개선형(베벨) 맞대기 용접", d:"한쪽 판만 비스듬히 깎습니다. V의 반쪽 모양.",
+    j:"butt", draw(g,cx,by,s,u){ const k=u?-1:1;
+      line(g,cx-s*0.16,by,cx-s*0.16,by+k*s,INK,1.6);
+      line(g,cx-s*0.16,by,cx+s*0.34,by+k*s,INK,1.6); }},
+  ugroove:{n:"U형 맞대기 용접", d:"홈 바닥을 둥글게 판 모양. 두꺼운 판에서 용착금속을 아낍니다.",
+    j:"butt", draw(g,cx,by,s,u){ const k=u?-1:1; g.save(); g.strokeStyle=INK; g.lineWidth=1.6;
+      g.beginPath(); g.moveTo(cx-s*0.34,by+k*s); g.lineTo(cx-s*0.34,by+k*s*0.45);
+      g.quadraticCurveTo(cx-s*0.34,by, cx,by); g.quadraticCurveTo(cx+s*0.34,by, cx+s*0.34,by+k*s*0.45);
+      g.lineTo(cx+s*0.34,by+k*s); g.stroke(); g.restore(); }},
+  jgroove:{n:"J형 맞대기 용접", d:"U형의 반쪽. 한쪽 판만 둥글게 팝니다.",
+    j:"butt", draw(g,cx,by,s,u){ const k=u?-1:1; g.save(); g.strokeStyle=INK; g.lineWidth=1.6;
+      g.beginPath(); g.moveTo(cx-s*0.2,by+k*s); g.lineTo(cx-s*0.2,by);
+      g.moveTo(cx-s*0.2,by); g.quadraticCurveTo(cx+s*0.32,by, cx+s*0.32,by+k*s*0.5);
+      g.lineTo(cx+s*0.32,by+k*s); g.stroke(); g.restore(); }},
+  fillet:{n:"필릿 용접", d:"T자나 겹치기로 붙인 <b>구석(모서리)</b>을 삼각형 단면으로 채웁니다. 현장에서 가장 많이 씁니다.",
+    j:"tee", draw(g,cx,by,s,u){ const k=u?-1:1; g.save(); g.strokeStyle=INK; g.lineWidth=1.6;
+      g.beginPath(); g.moveTo(cx-s*0.3,by); g.lineTo(cx-s*0.3,by+k*s);
+      g.lineTo(cx+s*0.42,by); g.closePath(); g.stroke(); g.restore(); }},
+  plug:{n:"플러그(슬롯) 용접", d:"겹친 판의 <b>구멍을 뚫고 그 안을</b> 용접해 붙입니다.",
+    j:"lap", draw(g,cx,by,s,u){ const k=u?-1:1; g.save(); g.strokeStyle=INK; g.lineWidth=1.6;
+      g.strokeRect(cx-s*0.32, u?by-s:by, s*0.64, s); g.restore(); }},
+  spot:{n:"점 용접", d:"겹친 판을 전극으로 눌러 <b>점</b>으로 붙입니다(저항 용접). 자동차 차체.",
+    j:"lap", draw(g,cx,by,s,u){ g.save(); g.strokeStyle=INK; g.lineWidth=1.6;
+      g.beginPath(); g.arc(cx,by,s*0.34,0,2*Math.PI); g.stroke(); g.restore(); }},
+  back:{n:"이면 용접", d:"한쪽에서 용접한 뒤 <b>뒷면</b>을 덧용접해 마무리합니다.",
+    j:"butt", draw(g,cx,by,s,u){ const k=u?-1:1; g.save(); g.strokeStyle=INK; g.lineWidth=1.6;
+      g.beginPath(); g.moveTo(cx-s*0.36,by); g.quadraticCurveTo(cx,by+k*s*1.15, cx+s*0.36,by); g.stroke(); g.restore(); }}
+};
+const SKEYS=Object.keys(SYMS);
+
+/* 보조기호 — 기본기호 바깥쪽에 덧붙인다 */
+const SUP={
+  flat:{n:"평면(동일 평면으로 다듬질)", d:"용접부 표면을 판과 같은 높이로 <b>평평하게</b> 다듬습니다.",
+    draw(g,cx,by,s,u){ const k=u?-1:1; line(g,cx-s*0.4,by+k*s*1.18,cx+s*0.4,by+k*s*1.18,INK,1.6); }},
+  convex:{n:"볼록형", d:"용접부 표면이 <b>볼록하게</b> 솟은 모양입니다.",
+    draw(g,cx,by,s,u){ const k=u?-1:1, y=by+k*s*1.12; g.save(); g.strokeStyle=INK; g.lineWidth=1.6;
+      g.beginPath(); g.moveTo(cx-s*0.4,y); g.quadraticCurveTo(cx,y+k*s*0.5, cx+s*0.4,y); g.stroke(); g.restore(); }},
+  concave:{n:"오목형", d:"용접부 표면이 <b>오목하게</b> 파인 모양입니다.",
+    draw(g,cx,by,s,u){ const k=u?-1:1, y=by+k*s*1.3; g.save(); g.strokeStyle=INK; g.lineWidth=1.6;
+      g.beginPath(); g.moveTo(cx-s*0.4,y); g.quadraticCurveTo(cx,y-k*s*0.5, cx+s*0.4,y); g.stroke(); g.restore(); }}
+};
+
+/* ================= 설명선(용접기호 전체) 그리기 ================= */
+/* opt: {sym, side:'arrow'|'other'|'both', allAround, field, dimL, dimR, tail, hi} */
+function drawCallout(g,w,h,opt){
+  opt=opt||{};
+  const bx=w*0.30, by=h*0.50;                 // 기준선 시작점(= 화살표가 붙는 꺾임점)
+  const ex=Math.min(w*0.86, bx+w*0.5);        // 기준선 끝
+  const ax=bx-w*0.19, ay=by+h*0.27;           // 화살표 끝(부재를 가리킴)
+  const s=Math.min(h*0.15, 26);
+  const cx=bx+(ex-bx)*0.45;
+  const on=k=>opt.hi===k;
+  const c=k=>on(k)?RED:INK;
+  const lw=k=>on(k)?2.8:1.5;
+
+  // 지시선(화살표)
+  line(g,ax,ay,bx,by,c("arrow"),lw("arrow"));
+  arrowHead(g,ax,ay,Math.atan2(ay-by,ax-bx),c("arrow"));
+  // 기준선(실선)
+  line(g,bx,by,ex,by,c("base"),lw("base"));
+  // 동일선(파선) — 실선 아래쪽
+  const dy=by+s*1.55;
+  line(g,bx,dy,ex,dy,c("dash"),lw("dash"),[7,5]);
+
+  // 용접 기호
+  const S=SYMS[opt.sym||"fillet"];
+  if(opt.side==="arrow"||opt.side==="both") S.draw(g,cx,by,s,true);
+  if(opt.side==="other"||opt.side==="both")  S.draw(g,cx,dy,s,false);
+  // 보조기호
+  if(opt.sup){ if(opt.side==="arrow"||opt.side==="both") SUP[opt.sup].draw(g,cx,by,s,true);
+               if(opt.side==="other"||opt.side==="both") SUP[opt.sup].draw(g,cx,dy,s,false); }
+
+  // 일주 용접(원) · 현장 용접(깃발) — 화살표와 기준선이 만나는 점
+  if(opt.allAround){ g.save(); g.strokeStyle=c("around"); g.lineWidth=lw("around");
+    g.beginPath(); g.arc(bx,by,7,0,2*Math.PI); g.stroke(); g.restore(); }
+  if(opt.field){ g.save(); g.strokeStyle=c("field"); g.fillStyle=c("field"); g.lineWidth=lw("field");
+    g.beginPath(); g.moveTo(bx,by); g.lineTo(bx,by-20); g.stroke();
+    g.beginPath(); g.moveTo(bx,by-20); g.lineTo(bx+13,by-15.5); g.lineTo(bx,by-11); g.closePath(); g.fill(); g.restore(); }
+
+  // 치수 문자
+  if(opt.dimL) txt(g,opt.dimL, cx-s*0.75, by-s*0.5, {a:"right",b:true,s:14,c:c("dim")});
+  if(opt.dimR) txt(g,opt.dimR, cx+s*0.75, by-s*0.5, {a:"left", b:true,s:14,c:c("dim")});
+  if(opt.dimLo) txt(g,opt.dimLo, cx-s*0.75, dy+s*0.6, {a:"right",b:true,s:14,c:c("dim")});
+
+  // 꼬리
+  if(opt.tail!==false){ const tx=ex;
+    line(g,tx,by,tx+16,by-9,c("tail"),lw("tail")); line(g,tx,by,tx+16,by+9,c("tail"),lw("tail"));
+    if(opt.tailText) txt(g,opt.tailText,tx+20,by,{a:"left",s:11,c:"#5b7286"}); }
+
+  return {bx,by,dy,ex,ax,ay,cx,s};
+}
+
+/* 이음 단면도 — 용접 비드가 어디에 붙는지 */
+function drawJoint(g,x,y,w,h,kind,side,label){
+  const t=Math.max(8,h*0.13);
+  g.save();
+  const plate=(px,py,pw,ph)=>{ g.fillStyle="#d9dfe5"; g.strokeStyle=INK; g.lineWidth=1.4;
+    g.fillRect(px,py,pw,ph); g.strokeRect(px,py,pw,ph); };
+  const bead=(bx,by2,up)=>{ g.save(); g.fillStyle=HOT; g.strokeStyle="#8f4318"; g.lineWidth=1.2;
+    g.beginPath();
+    if(kind==="tee"){ const k=up?-1:1;
+      g.moveTo(bx,by2); g.lineTo(bx+t*1.6*(up?1:1),by2); g.lineTo(bx,by2+k*t*1.6); g.closePath();
+    } else { const k=up?-1:1;
+      g.moveTo(bx-t*1.2,by2); g.quadraticCurveTo(bx,by2+k*t*1.5, bx+t*1.2,by2); g.closePath(); }
+    g.fill(); g.stroke(); g.restore(); };
+
+  if(kind==="tee"){
+    const midX=x+w*0.5, baseY=y+h*0.72;
+    plate(x+w*0.12, baseY, w*0.76, t);                    // 수평판
+    plate(midX-t/2, y+h*0.18, t, baseY-(y+h*0.18));       // 수직판
+    // 화살표 쪽 = 오른쪽 구석 / 반대쪽 = 왼쪽 구석
+    if(side==="arrow"||side==="both"){ g.save(); g.fillStyle=HOT; g.strokeStyle="#8f4318"; g.lineWidth=1.2;
+      g.beginPath(); g.moveTo(midX+t/2,baseY); g.lineTo(midX+t/2+t*1.5,baseY); g.lineTo(midX+t/2,baseY-t*1.5);
+      g.closePath(); g.fill(); g.stroke(); g.restore(); }
+    if(side==="other"||side==="both"){ g.save(); g.fillStyle=HOT; g.strokeStyle="#8f4318"; g.lineWidth=1.2;
+      g.beginPath(); g.moveTo(midX-t/2,baseY); g.lineTo(midX-t/2-t*1.5,baseY); g.lineTo(midX-t/2,baseY-t*1.5);
+      g.closePath(); g.fill(); g.stroke(); g.restore(); }
+  }else{                                                   // 맞대기
+    const cy=y+h*0.5, gap=t*0.5;
+    plate(x+w*0.10, cy-t/2, w*0.38, t);
+    plate(x+w*0.52, cy-t/2, w*0.38, t);
+    const mx=x+w*0.5;
+    if(side==="arrow"||side==="both") bead(mx,cy-t/2,true);
+    if(side==="other"||side==="both") bead(mx,cy+t/2,false);
+  }
+  if(label) txt(g,label,x+w/2,y+h-6,{s:11,c:"#5b7286",b:true});
+  g.restore();
+}
+
+/* ================= 배우기 ================= */
+const PARTS=[
+  {k:"arrow", n:"① 화살표(지시선)", t:"용접할 <b>그 자리</b>를 콕 집어 가리킵니다. 기울기는 자유이고, 기준선 한쪽 끝에 붙습니다."},
+  {k:"base",  n:"② 기준선 — 실선", t:"모든 기호가 올라앉는 선. <b>여기 붙은 기호 = 화살표 쪽을 용접</b>한다는 뜻입니다. 도면의 이음부와 나란히 긋습니다."},
+  {k:"dash",  n:"③ 동일선 — 파선", t:"실선과 짝을 이루는 <b>점선</b>. <b>여기 붙은 기호 = 화살표 반대쪽</b>을 용접합니다. 실선 위쪽에 그려도 됩니다."},
+  {k:"around",n:"④ 일주 용접(○)", t:"화살표와 기준선이 만나는 곳에 <b>동그라미</b>. 부재의 <b>온 둘레</b>를 빙 둘러 용접하라는 뜻입니다."},
+  {k:"field", n:"⑤ 현장 용접(깃발)", t:"같은 자리에 <b>깃발</b>. 공장이 아니라 <b>설치 현장</b>에서 용접하라는 뜻입니다."},
+  {k:"tail",  n:"⑥ 꼬리", t:"용접 방법·자세·재료 같은 <b>특별 지시</b>를 적는 자리입니다. 적을 게 없으면 생략합니다."}
+];
+let partIdx=0;
+const LEARN=[
+  {title:"① 용접기호는 어떻게 생겼나 — 설명선",
+   body:"용접기호는 <b>그림 한 덩어리</b>입니다. 부품을 하나씩 눌러 보면 금방 익숙해집니다.<br><br>구성은 <span class='hl'>화살표 + 기준선(실선) + 동일선(파선) + 용접기호 + 꼬리</span>. 여기에 필요하면 일주 용접(○)과 현장 용접(깃발)이 붙습니다.<br><br>아래 버튼을 눌러 <b>빨갛게 표시되는 부분</b>이 무엇인지 확인해 보세요.",
+   widget:"wCallout"},
+  {title:"② 이 단원의 전부 — 실선이냐 파선이냐",
+   body:"용접기호에서 <b>딱 하나만 외운다면 이것</b>입니다.<br><br><span class='hl'>기호가 실선(기준선)에 붙으면 → 화살표가 가리키는 쪽을 용접</span><br><span class='hl'>기호가 파선(동일선)에 붙으면 → 화살표 반대쪽을 용접</span><br><br>양쪽 다 용접하면 실선·파선에 <b>대칭으로 둘 다</b> 그립니다.<br><br>아래 버튼을 바꿔 가며, 오른쪽 <b>실제 이음 단면</b>에서 주황색 용접부가 어디로 옮겨 가는지 보세요.",
+   widget:"wSide"},
+  {title:"③ 기본 기호 — 용접부 모양을 닮았다",
+   body:"기본 기호는 어렵게 외울 게 없습니다. <b>용접부의 단면 모양을 그대로 본뜬 그림</b>이기 때문입니다.<br><br>V형 홈이면 <b>V</b>, U형 홈이면 <b>U</b>, 구석을 삼각형으로 채우면 <b>삼각형</b>, 점으로 붙이면 <b>동그라미</b>. 카드를 눌러 기호와 실제 이음 단면을 나란히 확인하세요.",
+   widget:"wSym"},
+  {title:"④ 보조기호와 치수 — 얼마나, 어떻게",
+   body:"기본 기호가 <b>무엇을</b>이라면, 보조기호와 치수는 <b>어떻게·얼마나</b>입니다.<br><br>표면 모양은 <b>평면 · 볼록형 · 오목형</b>, 크기는 필릿이면 <span class='hl'>z(각장)</span> 또는 <span class='hl'>a(목두께)</span>를 기호 <b>왼쪽</b>에 적습니다.<br><br>띄엄띄엄 용접(단속 필릿)은 기호 <b>오른쪽</b>에 <code>n × l (e)</code> — <b>n개를 l 길이로, e 간격</b>으로. 점·플러그 용접은 지름 <code>d</code>를 씁니다.",
+   widget:"wDim"}
+];
+let page=0, seen=new Set();
+const LKEY="learned_weld_symbol";
+try{ if(localStorage.getItem(LKEY)==="1") el("dLearn").classList.remove("hidden"); }catch(e){}
+
+function renderLearn(){
+  const L=LEARN[page];
+  el("learnTitle").innerHTML=L.title; el("learnBody").innerHTML=L.body;
+  ["wCallout","wSide","wSym","wDim"].forEach(w=>el(w).classList.toggle("hidden",w!==L.widget));
+  el("learnPos").textContent=(page+1)+" / "+LEARN.length;
+  el("learnDots").innerHTML=LEARN.map((_,i)=>
+    '<span class="dot '+(i===page?"on":(seen.has(i)?"seen":""))+'"></span>').join("");
+  el("btnPrev").disabled=page===0;
+  const last=page===LEARN.length-1;
+  el("btnNextPage").classList.toggle("hidden",last);
+  el("btnGoTest").classList.toggle("hidden",!last);
+  seen.add(page);
+  if(L.widget==="wCallout") drawCalloutPage();
+  if(L.widget==="wSide") drawSidePage();
+  if(L.widget==="wSym") renderSymGrid();
+  if(L.widget==="wDim") drawDimPage();
+  if(last){ try{ localStorage.setItem(LKEY,"1"); }catch(e){} el("dLearn").classList.remove("hidden"); }
+}
+el("btnPrev").onclick=()=>{ if(page>0){page--;renderLearn();} };
+el("btnNextPage").onclick=()=>{ if(page<LEARN.length-1){page++;renderLearn();} };
+el("btnGoTest").onclick=()=>{
+  fxBanner({icon:"📖",title:"배우기 완료!",sub:"실선이냐 파선이냐 — 그것만 기억하세요.",stars:3});
+  showTab("tabSide");
+};
+
+/* ---- 쪽1 ---- */
+el("partBtns").innerHTML=PARTS.map((p,i)=>
+  '<button class="partbtn" type="button" data-i="'+i+'" aria-pressed="'+(i===0)+'">'+p.n+'</button>').join("");
+el("partBtns").addEventListener("click",e=>{
+  const b=e.target.closest(".partbtn"); if(!b) return;
+  partIdx=+b.dataset.i;
+  el("partBtns").querySelectorAll(".partbtn").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  drawCalloutPage(); fxRight(b);
+});
+function drawCalloutPage(){
+  const {g,w,h}=ctxOf(el("calloutCv"));
+  drawCallout(g,w,h,{sym:"fillet",side:"both",allAround:true,field:true,
+    dimL:"z6",dimR:"3×50(100)",hi:PARTS[partIdx].k,tailText:"ISO 4063"});
+  el("partExplain").innerHTML="<b>"+PARTS[partIdx].n+"</b> — "+PARTS[partIdx].t;
+}
+
+/* ---- 쪽2 : 핵심 ---- */
+let sideNow="arrow";
+el("sideSeg").addEventListener("click",e=>{
+  const b=e.target.closest(".segBtn"); if(!b) return;
+  sideNow=b.dataset.s;
+  el("sideSeg").querySelectorAll(".segBtn").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  drawSidePage(); fxRight(b);
+});
+function drawSidePage(){
+  const {g,w,h}=ctxOf(el("sideCv"));
+  const half=w*0.5;
+  drawCallout(g,half*1.02,h,{sym:"fillet",side:sideNow});
+  g.save(); g.setLineDash([3,4]); g.strokeStyle="#c8bfa6"; g.lineWidth=1;
+  g.beginPath(); g.moveTo(half,10); g.lineTo(half,h-10); g.stroke(); g.restore();
+  drawJoint(g,half+8,14,w-half-16,h-28,"tee",sideNow,"실제 이음 단면 (T 이음)");
+  const M={arrow:["화살표 쪽","기호가 <b>실선</b>에 붙었습니다 → 화살표가 가리키는 <b>그 면</b>을 용접합니다."],
+           other:["화살표 반대쪽","기호가 <b>파선</b>에 붙었습니다 → 화살표가 가리키는 면의 <b>반대쪽</b>을 용접합니다."],
+           both :["양쪽 모두","실선·파선에 <b>대칭으로 둘 다</b> 붙었습니다 → <b>양면</b>을 용접합니다."]};
+  el("sideKey").innerHTML="✅ <b>"+M[sideNow][0]+"</b><br>"+M[sideNow][1]+
+    "<br><br>👉 외우는 법: <b>실선은 화살표 쪽, 파선은 반대쪽.</b> 시험에서 여기서 제일 많이 틀립니다.";
+}
+
+/* ---- 쪽3 ---- */
+let symNow="fillet";
+function renderSymGrid(){
+  el("symGrid").innerHTML=SKEYS.map(k=>
+    '<button class="symcard" type="button" data-k="'+k+'" aria-pressed="'+(k===symNow)+'">'+
+    '<canvas></canvas><div class="nm">'+SYMS[k].n.replace(" 용접","")+'</div></button>').join("");
+  [...el("symGrid").children].forEach((b,i)=>{
+    const cv=b.querySelector("canvas"); const {g,w,h}=ctxOf(cv);
+    line(g,10,h*0.72,w-10,h*0.72,DIM,1.2);
+    SYMS[SKEYS[i]].draw(g,w/2,h*0.72,Math.min(h*0.44,24),true);
+  });
+  drawSymDetail();
+}
+el("symGrid").addEventListener("click",e=>{
+  const b=e.target.closest(".symcard"); if(!b) return;
+  symNow=b.dataset.k; renderSymGrid(); fxRight(b);
+});
+function drawSymDetail(){
+  const {g,w,h}=ctxOf(el("symCv"));
+  const S=SYMS[symNow];
+  const half=w*0.46;
+  line(g,20,h*0.62,half-20,h*0.62,INK,1.5);
+  S.draw(g,(half)/2,h*0.62,Math.min(h*0.3,34),true);
+  txt(g,"기호",(half)/2,h*0.88,{s:11,c:"#5b7286",b:true});
+  g.save(); g.setLineDash([3,4]); g.strokeStyle="#c8bfa6"; g.lineWidth=1;
+  g.beginPath(); g.moveTo(half,10); g.lineTo(half,h-10); g.stroke(); g.restore();
+  drawJoint(g,half+8,10,w-half-16,h-20,S.j==="tee"?"tee":"butt","arrow","실제 이음 단면");
+  el("symExplain").innerHTML="<b>"+S.n+"</b> — "+S.d;
+}
+
+/* ---- 쪽4 ---- */
+const DIMCASES=[
+  {k:"z", t:"필릿 각장 z", o:{sym:"fillet",side:"arrow",dimL:"z6"},
+   e:"<b>z6</b> — 필릿 단면에 그릴 수 있는 <b>최대 이등변삼각형의 변</b>(각장)이 6mm. 크기는 기호 <b>왼쪽</b>에 적습니다."},
+  {k:"a", t:"필릿 목두께 a", o:{sym:"fillet",side:"arrow",dimL:"a4"},
+   e:"<b>a4</b> — 같은 삼각형의 <b>높이</b>(목두께)가 4mm. z와 a는 서로 다른 값이니 문자를 꼭 확인해야 합니다."},
+  {k:"n", t:"단속 필릿 n×l(e)", o:{sym:"fillet",side:"arrow",dimL:"z6",dimR:"3×50(100)"},
+   e:"<b>z6  3×50(100)</b> — 각장 6mm 필릿을 <b>50mm 길이로 3군데</b>, <b>간격(피치) 100mm</b>로 띄엄띄엄 용접. 개수·길이·간격은 기호 <b>오른쪽</b>."},
+  {k:"both", t:"양면 지그재그", o:{sym:"fillet",side:"both",dimL:"z6",dimR:"3×50(100)",dimLo:"z6"},
+   e:"실선·파선 양쪽에 기호가 있으면 <b>양면 용접</b>. 치수도 각각 적습니다."},
+  {k:"d", t:"점 용접 지름 d", o:{sym:"spot",side:"arrow",dimL:"d8",dimR:"5×(30)"},
+   e:"<b>d8  5×(30)</b> — 지름 8mm 점 용접을 <b>5개</b>, 간격 30mm로. 점·플러그 용접은 <b>지름 d</b>를 씁니다."},
+  {k:"around", t:"일주 + 현장 용접", o:{sym:"fillet",side:"arrow",dimL:"z5",allAround:true,field:true},
+   e:"<b>○ 일주 용접</b>(온 둘레) + <b>깃발 현장 용접</b>. 둘 다 화살표와 기준선이 만나는 자리에 붙습니다."},
+  {k:"flat", t:"보조기호 — 평면", o:{sym:"vgroove",side:"arrow",sup:"flat"},
+   e:"V형 맞대기 + <b>평면</b> 보조기호. 용접부를 판과 <b>같은 높이로 다듬질</b>합니다."},
+  {k:"convex", t:"보조기호 — 볼록형", o:{sym:"fillet",side:"arrow",sup:"convex",dimL:"z6"},
+   e:"필릿 + <b>볼록형</b>. 표면이 볼록하게 솟은 모양으로 마무리합니다."},
+  {k:"concave", t:"보조기호 — 오목형", o:{sym:"fillet",side:"arrow",sup:"concave",dimL:"z6"},
+   e:"필릿 + <b>오목형</b>. 표면이 오목하게 들어간 모양으로 마무리합니다."}
+];
+let dimIdx=0;
+el("dimSeg").innerHTML=DIMCASES.map((c,i)=>
+  '<button class="segBtn" type="button" data-i="'+i+'" aria-pressed="'+(i===0)+'">'+c.t+'</button>').join("");
+el("dimSeg").addEventListener("click",e=>{
+  const b=e.target.closest(".segBtn"); if(!b) return;
+  dimIdx=+b.dataset.i;
+  el("dimSeg").querySelectorAll(".segBtn").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  drawDimPage(); fxRight(b);
+});
+function drawDimPage(){
+  const {g,w,h}=ctxOf(el("dimCv"));
+  drawCallout(g,w,h,Object.assign({tail:false},DIMCASES[dimIdx].o));
+  el("dimExplain").innerHTML=DIMCASES[dimIdx].e;
+  el("dimTable").innerHTML="<tr><th>문자</th><th>뜻</th><th>적는 자리</th></tr>"+
+    [["z","필릿 각장(삼각형의 변)","기호 왼쪽"],["a","필릿 목두께(삼각형의 높이)","기호 왼쪽"],
+     ["s","맞대기 용접의 용입 깊이","기호 왼쪽"],["l","용접 길이","기호 오른쪽"],
+     ["n","용접부의 개수","기호 오른쪽"],["(e)","단속 용접의 간격(피치)","기호 오른쪽"],
+     ["d","점·플러그 용접의 지름","기호 왼쪽"]]
+    .map(r=>"<tr><td class='k'>"+r[0]+"</td><td class='l'>"+r[1]+"</td><td>"+r[2]+"</td></tr>").join("");
+}
+
+/* ================= 문제 ================= */
+const qPrompt=el("qPrompt"), qChoices=el("qChoices"), qCv=el("qCv"), qCvBox=el("qCvBox"),
+      qToast=el("qToast"), qExplain=el("qExplain"), btnSubmit=el("btnSubmit"), btnNext=el("btnNext");
+let quiz=null;
+
+const SIDEN={arrow:"화살표 쪽",other:"화살표 반대쪽",both:"양쪽 모두"};
+function qSide(){
+  const side=pick(["arrow","other","both"]), sym=pick(SKEYS);
+  const opts=["화살표 쪽","화살표 반대쪽","양쪽 모두","알 수 없음"];
+  return {draw:cv=>{const {g,w,h}=ctxOf(cv); drawCallout(g,w,h,{sym,side,tail:false});},
+    opts, answer:opts.indexOf(SIDEN[side]),
+    prompt:"이 용접기호는 <b>어느 쪽</b>을 용접하라는 뜻일까요?",
+    explain:"<b>"+SIDEN[side]+"</b> 입니다.<br>"+
+      (side==="arrow"?"기호가 <b>실선(기준선)</b>에 붙었으므로 화살표가 가리키는 그 면을 용접합니다."
+       :side==="other"?"기호가 <b>파선(동일선)</b>에 붙었으므로 화살표 반대쪽을 용접합니다."
+       :"실선·파선에 <b>대칭으로 둘 다</b> 붙었으므로 양면을 용접합니다.")+
+      "<br>👉 <b>실선 = 화살표 쪽 / 파선 = 반대쪽</b>"};
+}
+function qName(){
+  const k=pick(SKEYS);
+  const wrong=shuffle(SKEYS.filter(x=>x!==k)).slice(0,3).map(x=>SYMS[x].n);
+  const opts=shuffle([SYMS[k].n,...wrong]);
+  return {draw:cv=>{const {g,w,h}=ctxOf(cv);
+      line(g,w*0.2,h*0.62,w*0.8,h*0.62,INK,1.5);
+      SYMS[k].draw(g,w*0.5,h*0.62,Math.min(h*0.3,34),true);
+      txt(g,"기준선 위에 그려진 기호",w*0.5,h*0.86,{s:11,c:"#5b7286"});},
+    opts, answer:opts.indexOf(SYMS[k].n),
+    prompt:"이 <b>기본 기호</b>의 이름은?",
+    explain:"<b>"+SYMS[k].n+"</b> — "+SYMS[k].d};
+}
+function qSup(){
+  const k=pick(Object.keys(SUP));
+  const wrong=shuffle(Object.keys(SUP).filter(x=>x!==k)).slice(0,2).map(x=>SUP[x].n);
+  const opts=shuffle([SUP[k].n,...wrong,"일주 용접"]);
+  return {draw:cv=>{const {g,w,h}=ctxOf(cv);
+      drawCallout(g,w,h,{sym:"fillet",side:"arrow",sup:k,tail:false});},
+    opts, answer:opts.indexOf(SUP[k].n),
+    prompt:"기본 기호 바깥쪽에 붙은 <b>보조기호</b>의 뜻은?",
+    explain:"<b>"+SUP[k].n+"</b> — "+SUP[k].d+"<br>보조기호가 <b>없으면</b> 표면 형상을 특별히 지시하지 않는다는 뜻입니다."};
+}
+function qMark(){
+  const isAround=rnd(2)===0;
+  const opts=["부재의 온 둘레를 빙 둘러 용접","설치 현장에서 용접","공장에서만 용접","용접하지 않음"];
+  const ans=isAround?opts[0]:opts[1];
+  const o=shuffle(opts.slice());
+  return {draw:cv=>{const {g,w,h}=ctxOf(cv);
+      drawCallout(g,w,h,{sym:"fillet",side:"arrow",allAround:isAround,field:!isAround,tail:false});},
+    opts:o, answer:o.indexOf(ans),
+    prompt:"화살표와 기준선이 만나는 곳의 <b>표시</b>가 뜻하는 것은?",
+    explain:isAround?"<b>일주 용접(○)</b> — 부재의 <b>온 둘레</b>를 빙 둘러 용접하라는 뜻입니다."
+                    :"<b>현장 용접(깃발)</b> — 공장이 아니라 <b>설치 현장</b>에서 용접하라는 뜻입니다."};
+}
+function qDim(){
+  const t=rnd(3);
+  if(t===0){
+    const z=[4,5,6,8,9,10][rnd(6)], n=[2,3,4,5][rnd(4)], l=[30,40,50,60][rnd(4)], e=[100,120,150,200][rnd(4)];
+    const kinds=["용접부의 개수","한 군데의 용접 길이(mm)","용접부 사이의 간격(피치, mm)","필릿의 각장(mm)"];
+    const vals ={ "용접부의 개수":n, "한 군데의 용접 길이(mm)":l, "용접부 사이의 간격(피치, mm)":e, "필릿의 각장(mm)":z };
+    const ask=pick(kinds), ans=String(vals[ask]);
+    const opts=shuffle([...new Set([String(n),String(l),String(e),String(z)])]);
+    while(opts.length<4) opts.push(String(Math.max(...opts.map(Number))+7));
+    if(!opts.includes(ans)) opts[0]=ans;
+    return {draw:cv=>{const {g,w,h}=ctxOf(cv);
+        drawCallout(g,w,h,{sym:"fillet",side:"arrow",dimL:"z"+z,dimR:n+"×"+l+"("+e+")",tail:false});},
+      opts:shuffle(opts).slice(0,4), answer:-1, dyn:{ask,ans},
+      prompt:"<code class='m'>z"+z+"  "+n+"×"+l+"("+e+")</code> 로 적힌 단속 필릿 용접입니다.<br><b>"+ask+"</b>는?",
+      explain:"<code>z"+z+"</code> = 각장 "+z+"mm, <code>"+n+"×"+l+"("+e+")</code> = <b>"+l+"mm 길이로 "+n+"군데</b>, 간격 "+e+"mm.<br>"+
+        "<b>"+ask+" = "+ans+"</b><br>크기는 기호 <b>왼쪽</b>, 개수·길이·간격은 기호 <b>오른쪽</b>."};
+  }
+  if(t===1){
+    const opts=["필릿 용접의 각장(삼각형의 변)","필릿 용접의 목두께(삼각형의 높이)","용접 길이","용접부의 개수"];
+    const useZ=rnd(2)===0;
+    const ans=useZ?opts[0]:opts[1];
+    const o=shuffle(opts.slice());
+    return {draw:cv=>{const {g,w,h}=ctxOf(cv);
+        drawCallout(g,w,h,{sym:"fillet",side:"arrow",dimL:(useZ?"z":"a")+"6",tail:false});},
+      opts:o, answer:o.indexOf(ans),
+      prompt:"기호 왼쪽의 <b><code class='m'>"+(useZ?"z":"a")+"6</code></b> 이 뜻하는 것은?",
+      explain:"<b>z</b> = 각장(단면에 그릴 수 있는 최대 이등변삼각형의 <b>변</b>), <b>a</b> = 목두께(그 삼각형의 <b>높이</b>).<br>"+
+        "같은 필릿이라도 z와 a는 값이 다르므로 <b>문자를 반드시 확인</b>해야 합니다."};
+  }
+  const d=[5,6,8,10][rnd(4)], n=[4,5,6,8][rnd(4)];
+  const opts=shuffle([String(d),String(n),String(d*n),String(d+n)]).slice(0,4);
+  return {draw:cv=>{const {g,w,h}=ctxOf(cv);
+      drawCallout(g,w,h,{sym:"spot",side:"arrow",dimL:"d"+d,dimR:n+"×(30)",tail:false});},
+    opts, answer:opts.indexOf(String(d)),
+    prompt:"<code class='m'>d"+d+"  "+n+"×(30)</code> 로 적힌 <b>점 용접</b>입니다.<br>점 용접부 <b>하나의 지름</b>은 몇 mm일까요?",
+    explain:"<b>d = 점 용접부의 지름</b>이므로 <b>"+d+"mm</b>. "+n+"는 점의 <b>개수</b>, (30)은 <b>간격</b>입니다."};
+}
+function qConcept(){
+  const Q=[
+    {p:"용접기호에 관한 한국 산업 표준의 번호는?",
+     o:["KS B 0052","KS A 0005","KS D 3503","KS B 0001"],a:0,
+     e:"<b>KS B 0052</b>에 용접부의 기호 및 표시 방법이 규정되어 있습니다."},
+    {p:"용접기호에서 <b>화살표의 기울기</b>에 대한 설명으로 옳은 것은?",
+     o:["특별한 의미가 없으며 기준선 한쪽 끝에 일정한 각도로 붙인다","45°로 고정한다","기울기가 용접 자세를 뜻한다","항상 수직으로 그린다"],a:0,
+     e:"화살표의 <b>위치·기울기 자체에는 특별한 의미가 없습니다.</b> 중요한 것은 화살표가 <b>어느 면</b>을 가리키느냐입니다."},
+    {p:"용접기호의 <b>기준선</b>은 어떻게 긋는가?",
+     o:["도면의 이음부를 표시하는 선과 평행하게","항상 수직으로","이음부와 45°가 되게","방향은 상관없다"],a:0,
+     e:"기준선은 <b>이음부와 평행</b>하게 긋고, 불가능한 경우에만 수직으로 기입합니다."},
+    {p:"<b>보조기호가 없는</b> 용접기호는 무엇을 뜻하는가?",
+     o:["용접부 표면의 형상을 정확히 지시할 필요가 없다는 뜻","용접하지 않는다는 뜻","반드시 평면으로 다듬으라는 뜻","현장 용접이라는 뜻"],a:0,
+     e:"보조기호는 표면 형상을 <b>특별히 지시할 때만</b> 붙입니다. 없으면 형상을 따지지 않는다는 뜻입니다."},
+    {p:"용접기호의 <b>꼬리</b>에 적는 내용으로 알맞은 것은?",
+     o:["용접 방법·자세·재료 등 특별 지시 사항","용접부의 길이","판의 두께","도면 번호"],a:0,
+     e:"꼬리에는 <b>특별 지시 사항</b>(용접 방법·허용 수준·자세·재료 등)을 적고, 적을 것이 없으면 생략합니다."},
+    {p:"부재의 <b>양쪽</b>을 용접할 때의 표시 방법은?",
+     o:["실선과 파선에 기호를 대칭으로 둘 다 그린다","실선에만 기호를 두 개 그린다","화살표를 두 개 그린다","꼬리에 ‘양면’이라고 적는다"],a:0,
+     e:"양면 용접은 기준선(실선)과 동일선(파선)에 <b>대칭으로 조합</b>해 표시합니다."},
+    {p:"<b>필릿 용접</b>에 대한 설명으로 옳은 것은?",
+     o:["T자나 겹치기 이음의 구석을 삼각형 단면으로 채우는 용접","두 판을 같은 평면에서 맞대어 붙이는 용접","구멍을 뚫고 그 안을 채우는 용접","전극으로 눌러 점으로 붙이는 용접"],a:0,
+     e:"<b>필릿</b>은 구석을 채우는 용접이라 기호도 <b>직각삼각형</b>입니다. 맞대기보다 변형은 적지만 응력 집중은 큽니다."},
+    {p:"겹친 두 판에 <b>구멍을 뚫고 그 구멍 안을</b> 용접해 붙이는 것은?",
+     o:["플러그(슬롯) 용접","필릿 용접","V형 맞대기 용접","이면 용접"],a:0,
+     e:"<b>플러그(슬롯) 용접</b>. 기호는 구멍을 본뜬 <b>직사각형</b>입니다."},
+    {p:"<b>점 용접</b>의 기본 기호 모양은?",
+     o:["원","직사각형","삼각형","V자"],a:0,
+     e:"점으로 붙이므로 기호도 <b>원</b>입니다. 겹치기 이음의 저항 용접에 씁니다."},
+    {p:"두꺼운 판에서 용착금속을 아끼려고 홈 바닥을 <b>둥글게</b> 판 맞대기 용접은?",
+     o:["U형 맞대기 용접","V형 맞대기 용접","I형 맞대기 용접","필릿 용접"],a:0,
+     e:"<b>U형</b>은 홈을 둥글게 파 V형보다 용착금속이 적게 듭니다. 한쪽만 둥글게 파면 <b>J형</b>입니다."}
+  ];
+  const q=pick(Q); const idx=q.o.map((t,i)=>i); shuffle(idx);
+  return {opts:idx.map(i=>q.o[i]), answer:idx.indexOf(q.a), prompt:q.p, explain:q.e, noPic:true};
+}
+
+const GEN={
+  side:()=>pick([qSide,qSide,qSide,qMark])(),
+  name:()=>pick([qName,qName,qSup,qConcept])(),
+  dim :()=>pick([qDim,qDim,qDim,qConcept])(),
+  exam:()=>pick([qSide,qSide,qName,qSup,qMark,qDim,qDim,qConcept,qConcept])()
+};
+
+function renderQ(){
+  const q=quiz.q;
+  if(q.dyn && q.answer<0) q.answer=q.opts.indexOf(q.dyn.ans);
+  qPrompt.innerHTML=q.prompt;
+  qCvBox.classList.toggle("hidden",!!q.noPic);
+  if(!q.noPic) q.draw(qCv);
+  qChoices.innerHTML="";
+  const old=el("rcBtn"); if(old) old.remove();
+  qChoices.classList.toggle("one", q.opts.some(t=>t.length>24));
+  q.opts.forEach((t,i)=>{
+    const b=document.createElement("button");
+    b.className="choice"; b.type="button";
+    b.innerHTML='<span class="num">'+"①②③④"[i]+'</span><span class="tx">'+t+'</span>';
+    b.onclick=()=>{ if(quiz.answered) return; quiz.sel=i; btnSubmit.disabled=false;
+      qChoices.querySelectorAll(".choice").forEach(x=>x.classList.toggle("sel",x===b)); };
+    qChoices.appendChild(b);
+  });
+  quiz.answered=false; quiz.sel=null;
+  btnSubmit.disabled=true; btnSubmit.classList.remove("hidden");
+  btnNext.classList.add("hidden"); qExplain.classList.add("hidden");
+  qToast.className="toast go"; qToast.innerHTML="보기를 고른 뒤 <b>제출</b>을 누르세요.";
+  el("qRound").textContent=quiz.round; el("qTotal").textContent=quiz.total;
+  el("qScore").textContent=quiz.score; el("qCombo").textContent="연속 "+quiz.combo;
+}
+function submitQ(){
+  if(quiz.answered||quiz.sel==null) return;
+  quiz.answered=true;
+  const q=quiz.q, ok=quiz.sel===q.answer;
+  if(ok){quiz.score++;quiz.combo++;quiz.best=Math.max(quiz.best,quiz.combo);}
+  else {quiz.combo=0; quiz.wrong.push(quiz.round);}
+  const btns=qChoices.querySelectorAll(".choice");
+  btns.forEach((b,i)=>{ b.disabled=true; b.classList.remove("sel");
+    if(i===q.answer) b.classList.add("correct"); else if(i===quiz.sel) b.classList.add("wrong"); });
+  ok?fxRight(btns[quiz.sel]):fxWrong(btns[quiz.sel]);
+  el("qScore").textContent=quiz.score; el("qCombo").textContent="연속 "+quiz.combo;
+  qToast.className="toast "+(ok?"ok":"no");
+  qToast.textContent=ok?(quiz.combo>=3?"정답! "+quiz.combo+"연속 🔥":"정답이에요!")
+                       :"아쉬워요. 정답은 "+"①②③④"[q.answer]+"번.";
+  qExplain.innerHTML=q.explain; qExplain.classList.remove("hidden");
+  btnSubmit.classList.add("hidden"); btnNext.classList.remove("hidden");
+  btnNext.textContent = quiz.round>=quiz.total?"결과 보기 →":"다음 문제 →";
+}
+function startQuiz(type,total){
+  quiz={type,total:total||8,round:1,score:0,combo:0,best:0,answered:false,sel:null,
+        q:null,wrong:[],started:Date.now()};
+  quiz.q=GEN[type](); renderQ();
+}
+btnSubmit.onclick=submitQ;
+btnNext.onclick=()=>{ if(quiz.round>=quiz.total){finish();return;} quiz.round++; quiz.q=GEN[quiz.type](); renderQ(); };
+el("btnRestart").onclick=()=>startQuiz(quiz.type,quiz.total);
+
+function finish(){
+  const pct=Math.round(quiz.score/quiz.total*100), sec=Math.round((Date.now()-quiz.started)/1000);
+  qCvBox.classList.add("hidden"); qChoices.innerHTML="";
+  qPrompt.innerHTML="🎉 <b>"+quiz.total+"문제 완료!</b>";
+  qToast.className="toast "+(pct>=80?"ok":pct>=60?"go":"no");
+  qToast.textContent=pct+"점 · "+quiz.score+"/"+quiz.total+" 정답 · 최고 "+quiz.best+"연속 · "+sec+"초";
+  qExplain.classList.remove("hidden");
+  qExplain.innerHTML= pct>=80?"훌륭합니다! 이제 용접 도면의 기호를 혼자 읽을 수 있습니다."
+    : pct>=60?"좋아요. <b>📖 배우기 ②쪽</b>에서 실선·파선을 바꿔 가며 단면이 어떻게 달라지는지 한 번 더 보세요."
+    : "<b>📖 배우기</b>로 돌아가세요. <b>실선 = 화살표 쪽, 파선 = 반대쪽</b> 하나만 잡아도 절반은 맞힙니다.";
+  btnSubmit.classList.add("hidden"); btnNext.classList.add("hidden");
+  fxBanner({icon:pct>=80?"🏆":"💪", title:pct+"점!",
+            sub:quiz.score+" / "+quiz.total+" 정답 · "+sec+"초", stars:fxStars(quiz.total-quiz.score)});
+  const old=el("rcBtn"); if(old) old.remove();
+  if(window.ResultCollector && quiz.type==="exam"){
+    const endpoint=ResultCollector.config && ResultCollector.config.endpoint;
+    if(endpoint){
+      const btn=document.createElement("button");
+      btn.id="rcBtn"; btn.className="btn"; btn.style.marginTop="12px";
+      btn.textContent="🧑‍🏫 선생님께 결과 제출";
+      btn.onclick=()=>{ try{ ResultCollector.open({score:pct,correct:quiz.score,total:quiz.total,
+        wrong:quiz.wrong,durationSec:sec}); }catch(e){} };
+      qExplain.after(btn);
+    }
+  }
+}
+
+/* ================= 탭 ================= */
+const TABS={tabLearn:null, tabSide:"side", tabName:"name", tabDim:"dim", tabExam:"exam"};
+function showTab(id){
+  Object.keys(TABS).forEach(t=>el(t).setAttribute("aria-pressed",t===id));
+  const isLearn=id==="tabLearn";
+  el("secLearn").classList.toggle("hidden",!isLearn);
+  el("secQuiz").classList.toggle("hidden",isLearn);
+  if(isLearn) renderLearn();
+  else startQuiz(TABS[id], id==="tabExam"?10:8);
+}
+Object.keys(TABS).forEach(t=>el(t).onclick=()=>showTab(t));
+window.addEventListener("resize",()=>{
+  if(!el("secLearn").classList.contains("hidden")) renderLearn();
+  else if(quiz&&quiz.q&&!quiz.q.noPic) quiz.q.draw(qCv);
+});
+
+renderLearn();
+})();
+</script>
+</body>
+</html>
