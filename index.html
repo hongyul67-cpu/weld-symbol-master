@@ -58,6 +58,12 @@
   .dots{display:flex;gap:6px}
   .dot{width:10px;height:10px;border-radius:50%;background:rgba(234,244,255,.22)}
   .dot.on{background:var(--accent)} .dot.seen{background:var(--link)}
+  .jointgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;margin-top:6px}
+  .jointcell{background:var(--paper);border-radius:10px;padding:8px 6px 6px;text-align:center}
+  .jointcell svg{width:100%;height:74px;display:block}
+  .jointcell .jn{font-size:.82rem;font-weight:800;color:var(--ink);margin-top:4px}
+  .jointcell .jd{font-size:.72rem;color:#5b7286;line-height:1.35;margin-top:2px}
+  .jointhead{grid-column:1/-1;font-weight:800;color:var(--accent);font-size:.92rem;margin-top:4px}
   h2.step{font-size:1.12rem;margin:0 0 8px;color:var(--accent)}
   .body{font-size:.93rem;line-height:1.7;color:var(--text-dim)}
   .body b{color:var(--text)} .body .hl{color:var(--accent);font-weight:800}
@@ -143,6 +149,12 @@
       </div>
       <h2 class="step" id="learnTitle"></h2>
       <div class="body" id="learnBody"></div>
+
+      <!-- ⓪ 용접 이음의 종류와 자세 -->
+      <div id="wJoint" class="hidden">
+        <div class="jointgrid" id="jointGrid"></div>
+        <div class="explain" id="jointExplain"></div>
+      </div>
 
       <!-- ① 설명선 구조 -->
       <div id="wCallout" class="hidden">
@@ -469,16 +481,19 @@ const PARTS=[
 ];
 let partIdx=0;
 const LEARN=[
-  {title:"① 용접기호는 어떻게 생겼나 — 설명선",
+  {title:"① 무엇을 어떻게 잇는가 — 이음의 종류와 자세",
+   body:"기호를 배우기 전에, <b>무엇을 잇는지</b>부터 봅니다.<br><br>판을 맞대는 방법이 <span class='hl'>용접 이음의 종류</span>이고, 용접하는 사람이 어느 쪽에서 작업하는지가 <span class='hl'>용접 자세</span>입니다.<br><br>이음의 종류는 하중의 크기·판 두께·구조물의 모양을 보고 고릅니다. 자세는 <b>아래 보기</b>가 가장 쉽고 품질도 좋아, 될 수 있으면 아래 보기가 되도록 놓고 용접합니다.",
+   widget:"wJoint"},
+  {title:"② 용접기호는 어떻게 생겼나 — 설명선",
    body:"용접기호는 <b>그림 한 덩어리</b>입니다. 부품을 하나씩 눌러 보면 금방 익숙해집니다.<br><br>구성은 <span class='hl'>화살표 + 기준선(실선) + 동일선(파선) + 용접기호 + 꼬리</span>. 여기에 필요하면 일주 용접(○)과 현장 용접(깃발)이 붙습니다.<br><br>아래 버튼을 눌러 <b>빨갛게 표시되는 부분</b>이 무엇인지 확인해 보세요.",
    widget:"wCallout"},
-  {title:"② 이 단원의 전부 — 실선이냐 파선이냐",
+  {title:"③ 이 단원의 전부 — 실선이냐 파선이냐",
    body:"용접기호에서 <b>딱 하나만 외운다면 이것</b>입니다.<br><br><span class='hl'>기호가 실선(기준선)에 붙으면 → 화살표가 가리키는 쪽을 용접</span><br><span class='hl'>기호가 파선(동일선)에 붙으면 → 화살표 반대쪽을 용접</span><br><br>양쪽 다 용접하면 실선·파선에 <b>대칭으로 둘 다</b> 그립니다.<br><br>아래 버튼을 바꿔 가며, 오른쪽 <b>실제 이음 단면</b>에서 주황색 용접부가 어디로 옮겨 가는지 보세요.",
    widget:"wSide"},
-  {title:"③ 기본 기호 — 용접부 모양을 닮았다",
+  {title:"④ 기본 기호 — 용접부 모양을 닮았다",
    body:"기본 기호는 어렵게 외울 게 없습니다. <b>용접부의 단면 모양을 그대로 본뜬 그림</b>이기 때문입니다.<br><br>V형 홈이면 <b>V</b>, U형 홈이면 <b>U</b>, 구석을 삼각형으로 채우면 <b>삼각형</b>, 점으로 붙이면 <b>동그라미</b>. 카드를 눌러 기호와 실제 이음 단면을 나란히 확인하세요.",
    widget:"wSym"},
-  {title:"④ 보조기호와 치수 — 얼마나, 어떻게",
+  {title:"⑤ 보조기호와 치수 — 얼마나, 어떻게",
    body:"기본 기호가 <b>무엇을</b>이라면, 보조기호와 치수는 <b>어떻게·얼마나</b>입니다.<br><br>표면 모양은 <b>평면 · 볼록형 · 오목형</b>, 크기는 필릿이면 <span class='hl'>z(각장)</span> 또는 <span class='hl'>a(목두께)</span>를 기호 <b>왼쪽</b>에 적습니다.<br><br>띄엄띄엄 용접(단속 필릿)은 기호 <b>오른쪽</b>에 <code>n × l (e)</code> — <b>n개를 l 길이로, e 간격</b>으로. 점·플러그 용접은 지름 <code>d</code>를 씁니다.",
    widget:"wDim"}
 ];
@@ -486,10 +501,53 @@ let page=0, seen=new Set();
 const LKEY="learned_weld_symbol";
 try{ if(localStorage.getItem(LKEY)==="1") el("dLearn").classList.remove("hidden"); }catch(e){}
 
+/* 용접 이음의 종류와 자세 — 기계제도 Ⅴ-1 학습 목표 첫 항목 */
+const PLATE='#1c3247';
+function jsvg(inner){ return '<svg viewBox="0 0 120 74" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>'; }
+function pl(x,y,w,h){ return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="#c9d4e2" stroke="'+PLATE+'" stroke-width="2"/>'; }
+function bead(cx,cy,r){ return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#ff8a3d"/>'; }
+const JOINTS=[
+  {n:"맞대기 이음",  d:"두 판을 같은 면에서 마주 대고 잇는다",
+   g:pl(8,32,48,10)+pl(64,32,48,10)+bead(60,37,5)},
+  {n:"모서리 이음",  d:"두 판이 ㄱ자로 만나는 모서리를 잇는다",
+   g:pl(20,20,10,44)+pl(20,54,64,10)+bead(25,25,5)},
+  {n:"변두리 이음",  d:"겹쳐 세운 두 판의 끝(변두리)을 잇는다",
+   g:pl(48,14,10,50)+pl(62,14,10,50)+bead(60,18,6)},
+  {n:"겹치기 이음",  d:"두 판을 포개 놓고 끝을 잇는다",
+   g:pl(8,28,66,10)+pl(46,38,66,10)+bead(74,33,5)+bead(46,43,5)},
+  {n:"T 이음",       d:"판을 수직으로 세워 T자로 잇는다",
+   g:pl(54,10,12,40)+pl(14,50,92,10)+bead(50,48,6)+bead(70,48,6)},
+  {n:"십자형 이음",  d:"한 판 양쪽에 판을 세워 十자로 잇는다",
+   g:pl(54,6,12,62)+pl(10,32,44,10)+pl(66,32,44,10)+bead(50,30,5)+bead(70,30,5)}
+];
+const POSES=[
+  {n:"아래 보기 자세", d:"재료를 수평으로 놓고 용접봉을 아래로 향해 용접",
+   g:pl(14,44,92,10)+bead(60,42,6)+'<line x1="60" y1="10" x2="60" y2="34" stroke="'+PLATE+'" stroke-width="3"/>'},
+  {n:"수직 자세",      d:"재료가 서 있고 용접선이 수직 — 위아래로 진행",
+   g:pl(52,8,12,58)+'<line x1="70" y1="12" x2="70" y2="64" stroke="#ff8a3d" stroke-width="1.5" stroke-dasharray="4,3"/>'
+     +bead(70,30,6)+'<line x1="96" y1="30" x2="80" y2="30" stroke="'+PLATE+'" stroke-width="3"/>'},
+  {n:"수평 자세",      d:"재료가 서 있고 용접선이 수평",
+   g:pl(52,8,12,58)+bead(70,40,6)+'<line x1="96" y1="40" x2="80" y2="40" stroke="'+PLATE+'" stroke-width="3"/>'
+     +'<line x1="66" y1="40" x2="112" y2="40" stroke="#ff8a3d" stroke-width="1.5" stroke-dasharray="4,3"/>'},
+  {n:"위 보기 자세",   d:"재료가 머리 위에 있고 용접봉을 위로 향해 용접",
+   g:pl(14,18,92,10)+bead(60,30,6)+'<line x1="60" y1="62" x2="60" y2="38" stroke="'+PLATE+'" stroke-width="3"/>'}
+];
+function renderJoint(){
+  const cell=o=>'<div class="jointcell">'+jsvg(o.g)+'<div class="jn">'+o.n+'</div><div class="jd">'+o.d+'</div></div>';
+  el("jointGrid").innerHTML =
+    '<div class="jointhead">용접 이음의 종류 — 판을 어떻게 맞대는가</div>'+JOINTS.map(cell).join("")+
+    '<div class="jointhead">용접 자세 — 어느 쪽에서 용접하는가</div>'+POSES.map(cell).join("");
+  el("jointExplain").innerHTML =
+    "주황색이 <b>용접부(비드)</b>입니다. 이음의 종류는 <b>판을 어떻게 맞대는지</b>, 자세는 "+
+    "<b>용접하는 사람이 어느 쪽에서 작업하는지</b>를 뜻합니다.<br>"+
+    "<b>아래 보기</b>가 가장 쉽고 품질이 좋아, 될 수 있으면 아래 보기로 놓고 용접하도록 설계합니다. "+
+    "<b>위 보기</b>가 가장 어렵습니다.<br>"+
+    "홈의 각도가 너무 좁으면 <b>용입 불량</b>, 루트 면이 너무 얇으면 <b>용락</b>이 생기기 쉬워 홈 모양을 신중히 정합니다.";
+}
 function renderLearn(){
   const L=LEARN[page];
   el("learnTitle").innerHTML=L.title; el("learnBody").innerHTML=L.body;
-  ["wCallout","wSide","wSym","wDim"].forEach(w=>el(w).classList.toggle("hidden",w!==L.widget));
+  ["wJoint","wCallout","wSide","wSym","wDim"].forEach(w=>el(w).classList.toggle("hidden",w!==L.widget));
   el("learnPos").textContent=(page+1)+" / "+LEARN.length;
   el("learnDots").innerHTML=LEARN.map((_,i)=>
     '<span class="dot '+(i===page?"on":(seen.has(i)?"seen":""))+'"></span>').join("");
@@ -498,6 +556,7 @@ function renderLearn(){
   el("btnNextPage").classList.toggle("hidden",last);
   el("btnGoTest").classList.toggle("hidden",!last);
   seen.add(page);
+  if(L.widget==="wJoint") renderJoint();
   if(L.widget==="wCallout") drawCalloutPage();
   if(L.widget==="wSide") drawSidePage();
   if(L.widget==="wSym") renderSymGrid();
