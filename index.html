@@ -757,6 +757,9 @@ function qMark(){
     explain:isAround?"<b>일주 용접(○)</b> — 부재의 <b>온 둘레</b>를 빙 둘러 용접하라는 뜻입니다."
                     :"<b>현장 용접(깃발)</b> — 공장이 아니라 <b>설치 현장</b>에서 용접하라는 뜻입니다."};
 }
+/* 숫자 뒤의 은/는 — 끝자리를 우리말로 읽어 받침이 있으면 '은'
+   영(0)·일(1)·삼(3)·육(6)·칠(7)·팔(8) = 받침 있음 / 이(2)·사(4)·오(5)·구(9) = 없음 */
+function eunNeun(n){ return "013678".includes(String(n).slice(-1)) ? "은" : "는"; }
 function qDim(){
   const t=rnd(3);
   if(t===0){
@@ -792,7 +795,7 @@ function qDim(){
       drawCallout(g,w,h,{sym:"spot",side:"arrow",dimL:"d"+d,dimR:n+"×(30)",tail:false});},
     opts, answer:opts.indexOf(String(d)),
     prompt:"<code class='m'>d"+d+"  "+n+"×(30)</code> 로 적힌 <b>점 용접</b>입니다.<br>점 용접부 <b>하나의 지름</b>은 몇 mm일까요?",
-    explain:"<b>d = 점 용접부의 지름</b>이므로 <b>"+d+"mm</b>. "+n+"는 점의 <b>개수</b>, (30)은 <b>간격</b>입니다."};
+    explain:"<b>d = 점 용접부의 지름</b>이므로 <b>"+d+"mm</b>. "+n+eunNeun(n)+" 점의 <b>개수</b>, (30)은 <b>간격</b>입니다."};
 }
 function qConcept(){
   const Q=[
