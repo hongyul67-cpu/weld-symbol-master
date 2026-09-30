@@ -13,6 +13,7 @@
      같은 모양·같은 좌표 규칙으로 SVG 로 다시 그렸다. 이음·자세는 본체의 JOINTS·POSES
      와 같은 도형이다(본체 스크립트가 IIFE 안이라 값을 꺼내 쓸 수 없어 옮겨 적었다).
    ▸ 배우기 5쪽은 그대로 둔다. 슬라이드는 별도의 한 벌이다.
+   ▸ shared('키') 인 그림은 figs.js 의 것 — 배우기와 수업 슬라이드가 같은 그림을 쓴다.
    ══════════════════════════════════════════════════════════════ */
 (function () {
 'use strict';
@@ -88,6 +89,9 @@ var P = {
 };
 
 var FIG = {};
+/* figs.js(배우기와 같은 그림)를 쓴다 — 2026-09-30 그림05.
+   빈칸의 답이 되는 이름표(ans)는 labels:false 로 ? 로 가린다 */
+function shared(k) { return (window.FIG && window.FIG.has && window.FIG.has(k)) ? window.FIG.svgOf(k, { labels: false }) : ''; }
 
 FIG.joint1 = function () {
   return row([
@@ -157,17 +161,7 @@ function groove(kind) {
   }
   return left + right;
 }
-FIG.grooveIdea = function () {
-  return S(500, 150,
-    groove('V') +
-    '<g transform="translate(190,0)">' + groove('V') + '</g>' +
-    ln(58, 24, 62, 24, { c: HOT, w: 3 }) +
-    tx(60, 16, '홈 각도가 좁으면 → 용입 불량', { s: 11.5, c: HOT }) +
-    tx(60, 74, '루트 면', { s: 11, c: DIM }) +
-    '<g transform="translate(190,0)">' + tx(60, 16, '루트 면이 얇으면 → 용락 위험', { s: 11.5, c: HOT }) + '</g>' +
-    tx(250, 108, '홈 = 용접봉이 바닥까지 닿게 만든 골. 판이 두꺼울수록 크게 판다.', { s: 12.5 }) +
-    tx(250, 130, '설계자가 구조물의 모양과 하중을 보고 홈을 정한다.', { s: 12.5, c: DIM }));
-};
+FIG.grooveIdea = function () { return shared('groove-terms'); };
 FIG.grooves1 = function () {
   return row([
     { g: groove('I'), n: 'I 홈', d: '얇은 판 (t < 6mm)' },
@@ -212,14 +206,7 @@ function callout(o) {
   b += ln(ex, by, ex + 34, by + 16, { c: o.hi === 'tail' ? HOT : PLATE, w: o.hi === 'tail' ? 3 : 2 });
   return b;
 }
-FIG.callout = function () {
-  return S(460, 165, callout() +
-    tx(112, 106, '① 화살표', { s: 11.5, a: 'end', c: DIM }) +
-    tx(300, 52, '② 기준선(실선)', { s: 11.5, c: DIM }) +
-    tx(300, 96, '③ 동일선(파선)', { s: 11.5, c: DIM }) +
-    tx(120, 30, '④ 일주 ○  ⑤ 현장 깃발', { s: 11.5, a: 'start', c: DIM }) +
-    tx(400, 110, '⑥ 꼬리', { s: 11.5, c: DIM }));
-};
+FIG.callout = function () { return shared('callout-parts'); };
 FIG.calloutArrow  = function () { return S(460, 165, callout({ hi: 'arrow' })  + tx(112, 106, '화살표', { s: 12, a: 'end', c: HOT, w: 700 })); };
 FIG.calloutAround = function () { return S(460, 165, callout({ hi: 'around' }) + tx(120, 26, '온 둘레를 빙 둘러 용접', { s: 12, a: 'start', c: HOT, w: 700 })); };
 FIG.calloutField  = function () { return S(460, 165, callout({ hi: 'field' })  + tx(180, 26, '설치 현장에서 용접', { s: 12, a: 'start', c: HOT, w: 700 })); };
@@ -260,15 +247,7 @@ FIG.sideBoth = function () {
   return S(470, 145, sidePic('both') +
     tx(240, 26, '실선·파선에 대칭으로 → 양쪽 모두 용접', { s: 13, w: 700, c: HOT }));
 };
-FIG.sideKey = function () {
-  var b = ln(30, 60, 210, 60, { w: 2.6 }) + tx(120, 46, '기준선 — 실선', { s: 12, c: DIM }) +
-          pth('M110 60 L110 38 L132 60 Z', { c: HOT, w: 2.4 }) +
-          tx(120, 84, '화살표 쪽', { s: 14, w: 700, c: HOT }) +
-          ln(270, 60, 450, 60, { w: 2, d: '7,5' }) + tx(360, 46, '동일선 — 파선', { s: 12, c: DIM }) +
-          pth('M350 60 L350 82 L372 60 Z', { c: HOT, w: 2.4 }) +
-          tx(360, 104, '화살표 반대쪽', { s: 14, w: 700, c: HOT });
-  return S(480, 120, b);
-}
+FIG.sideKey = function () { return shared('side-3'); };
 
 /* ══ 기본 기호 9종 — 교과서 표 Ⅴ-1. 단면 모양을 본뜬 그림이다 ══ */
 function sym(kind, up) {
@@ -298,13 +277,7 @@ function symRow(list) {
   }).join('');
   return S(128 * list.length, 108, b);
 }
-FIG.symIdea = function () {
-  return S(470, 150,
-    '<g transform="translate(20,10)">' + groove('V') + '</g>' + tx(80, 108, '실제 V형 홈의 단면', { s: 12, c: DIM }) +
-    pth('M210 60 L270 60 M256 50 L270 60 L256 70', { c: HOT, w: 2.5 }) +
-    tx(240, 40, '본뜬다', { s: 12, c: HOT, w: 700 }) +
-    '<g transform="translate(300,10)">' + sym('vee') + '</g>' + tx(360, 108, '기본 기호 「V」', { s: 12, c: DIM }));
-};
+FIG.symIdea = function () { return shared('sym-idea'); };
 FIG.symButt1 = function () {
   return symRow([
     { k: 'square', n: 'I형(평행) 맞대기', d: '홈 없이 그대로' },
@@ -365,14 +338,7 @@ function filletDim() {
     ln(x + 14, y + h - 44, x + 36, y + h - 22, { c: '#15803d', w: 2 }) +
     tx(x + 46, y + h - 34, 'a', { s: 15, w: 700, c: '#15803d', a: 'start' });
 }
-FIG.dimZA = function () {
-  return S(470, 150, filletDim() +
-    tx(300, 44, 'z = 각장 — 단면에 그릴 수 있는', { s: 12.5, a: 'start', c: BLUE }) +
-    tx(300, 62, '     최대 이등변삼각형의 변', { s: 12.5, a: 'start', c: BLUE }) +
-    tx(300, 88, 'a = 목두께 — 그 삼각형의 높이', { s: 12.5, a: 'start', c: '#15803d' }) +
-    tx(300, 114, '우리나라는 z 로 적는다 (유럽은 a)', { s: 12, a: 'start', c: DIM }) +
-    tx(300, 136, '기호 왼쪽에 적는다  →  z6', { s: 13, a: 'start', w: 700 }));
-};
+FIG.dimZA = function () { return shared('fillet-za'); };
 function dimSymbol(left, right, kind) {
   var by = 56, b = ln(90, by, 330, by, { w: 2.4 });
   b += (kind === 'spot')
@@ -383,12 +349,7 @@ function dimSymbol(left, right, kind) {
   b += ln(90, by, 46, by + 34, { w: 2 }) + pth('M46 ' + (by + 34) + ' L60 ' + (by + 32) + ' L54 ' + (by + 22) + ' Z', { f: PLATE });
   return b;
 }
-FIG.dimIntermittent = function () {
-  return S(470, 170, dimSymbol('z6', '3×50(100)') +
-    tx(150, 118, '왼쪽 = 크기', { s: 12.5, c: HOT, w: 700 }) +
-    tx(320, 118, '오른쪽 = 개수 × 길이 (피치)', { s: 12.5, c: BLUE, w: 700 }) +
-    tx(235, 150, '각장 6mm 필릿을 길이 50mm 로 3군데, 100mm 간격으로', { s: 12.5, c: DIM }));
-};
+FIG.dimIntermittent = function () { return shared('intermittent'); };
 FIG.dimSpot = function () {
   return S(470, 170, dimSymbol('d8', '5(30)', 'spot') +
     tx(150, 118, 'd = 점·플러그 용접의 지름', { s: 12.5, c: HOT, w: 700 }) +

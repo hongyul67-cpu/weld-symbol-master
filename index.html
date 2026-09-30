@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <!-- 수업용 「모두 같은 문제」 — ?fix=1 로 열면 문제·보기 순서가 고정됩니다 -->
 <script src="https://hongyul67-cpu.github.io/links/fixorder.js"></script>
+<!-- 그림 — 그리는 도구(fig.js)는 links 의 공용 파일, 그림 모음(figs.js)은 이 저장소 것. 배우기 첫 쪽이 불러오자마자 그려지므로 head 에 둔다 -->
+<script src="https://hongyul67-cpu.github.io/links/fig.js"></script>
+<script src="figs.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>용접기호 마스터 — 화살표 쪽인가, 반대쪽인가</title>
 <style>
@@ -68,6 +71,7 @@
   .jointhead{grid-column:1/-1;font-weight:800;color:var(--accent);font-size:.92rem;margin-top:4px}
   h2.step{font-size:1.12rem;margin:0 0 8px;color:var(--accent)}
   .body{font-size:.93rem;line-height:1.7;color:var(--text-dim)}
+  #learnFigs{margin:12px 0 4px}
   .body b{color:var(--text)} .body .hl{color:var(--accent);font-weight:800}
 
   .partbtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
@@ -151,6 +155,7 @@
       </div>
       <h2 class="step" id="learnTitle"></h2>
       <div class="body" id="learnBody"></div>
+      <div class="lfig" id="learnFigs"></div>
 
       <!-- ⓪ 용접 이음의 종류와 자세 -->
       <div id="wJoint" class="hidden">
@@ -575,9 +580,17 @@ function renderJoint(){
     "<b>위 보기</b>가 가장 어렵습니다.<br>"+
     "홈의 각도가 너무 좁으면 <b>용입 불량</b>, 루트 면이 너무 얇으면 <b>용락</b>이 생기기 쉬워 홈 모양을 신중히 정합니다.";
 }
+/* 배우기 쪽 본문 아래 그림 — 어느 쪽에 붙는지는 figs.js 의 pages 가 정한다 */
+function renderLearnFigs(n){
+  const box=el("learnFigs"); if(!box) return;
+  const keys=(window.FIG && window.FIGS) ? Object.keys(FIGS).filter(k=>(FIGS[k].pages||[]).indexOf(n)>=0) : [];
+  box.innerHTML=!keys.length ? "" : keys.length===1 ? FIG.figure(keys[0]) : FIG.gallery(keys);
+  box.style.display=keys.length?"":"none";
+}
 function renderLearn(){
   const L=LEARN[page];
   el("learnTitle").innerHTML=L.title; el("learnBody").innerHTML=L.body;
+  renderLearnFigs(page+1);
   ["wJoint","wCallout","wSide","wSym","wDim"].forEach(w=>el(w).classList.toggle("hidden",w!==L.widget));
   el("learnPos").textContent=(page+1)+" / "+LEARN.length;
   el("learnDots").innerHTML=LEARN.map((_,i)=>
